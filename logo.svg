@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" role="img" aria-label="ccmeter logo">
+  <defs>
+    <linearGradient id="bg" x1="512" y1="0" x2="512" y2="1024" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#1F2937"/>
+      <stop offset="1" stop-color="#0B1220"/>
+    </linearGradient>
+    <linearGradient id="dial" x1="307" y1="785" x2="717" y2="785" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F4EFE6"/>
+      <stop offset="0.65" stop-color="#F4EFE6"/>
+      <stop offset="0.85" stop-color="#FCA864"/>
+      <stop offset="1" stop-color="#F97316"/>
+    </linearGradient>
+    <linearGradient id="needle" x1="512" y1="580" x2="682" y2="410" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#D97706"/>
+      <stop offset="1" stop-color="#FB923C"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="1024" height="1024" rx="229" ry="229" fill="url(#bg)"/>
+
+  <path d="M 307 785 A 290 290 0 1 1 717 785"
+        stroke="url(#dial)" stroke-width="56" stroke-linecap="round" fill="none"/>
+
+  <g stroke="#0B1220" stroke-width="6" stroke-linecap="round" opacity="0.55">
+    <line x1="307" y1="785" x2="335" y2="757"/>
+    <line x1="297" y1="618" x2="338" y2="618"/>
+    <line x1="362" y1="467" x2="392" y2="497"/>
+    <line x1="512" y1="404" x2="512" y2="446"/>
+    <line x1="662" y1="467" x2="632" y2="497"/>
+    <line x1="727" y1="618" x2="686" y2="618"/>
+    <line x1="717" y1="785" x2="689" y2="757"/>
+  </g>
+
+  <line x1="512" y1="580" x2="682" y2="410"
+        stroke="url(#needle)" stroke-width="32" stroke-linecap="round"/>
+
+  <circle cx="512" cy="580" r="44" fill="url(#needle)"/>
+  <circle cx="512" cy="580" r="16" fill="#0B1220"/>
+</svg>

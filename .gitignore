@@ -1,0 +1,13 @@
+.DS_Store
+*.xcodeproj/
+*.xcworkspace/
+build/
+dist/
+DerivedData/
+.build/
+xcuserdata/
+*.xcuserstate
+*.swp
+.vscode/
+Tests/Fixtures/
+ccmeter/Info.plist
