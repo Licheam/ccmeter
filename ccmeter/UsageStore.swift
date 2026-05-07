@@ -31,6 +31,8 @@ final class UsageStore {
 
     static let customPricingEnabledKey = "customPricingEnabled"
     static let customPricingPathKey = "customPricingPath"
+    static let multiplierEnabledKey = "multiplierEnabled"
+    static let multiplierKey = "costMultiplier"
 
     init() {
         let defaults = UserDefaults.standard
@@ -39,6 +41,9 @@ final class UsageStore {
         }
         if defaults.string(forKey: "displayMetric") == nil {
             defaults.set(DisplayMetric.cost.rawValue, forKey: "displayMetric")
+        }
+        if defaults.object(forKey: Self.multiplierKey) == nil {
+            defaults.set(1.0, forKey: Self.multiplierKey)
         }
         self.refreshIntervalSec = max(5, defaults.integer(forKey: "refreshIntervalSec"))
         self.displayMetric = DisplayMetric(rawValue: defaults.string(forKey: "displayMetric") ?? "cost") ?? .cost
@@ -152,6 +157,14 @@ final class UsageStore {
         NotificationCenter.default.post(name: .ccmeterStatusBarShouldRefresh, object: nil)
     }
 
+    func setMultiplier(enabled: Bool, value: Double) {
+        let defaults = UserDefaults.standard
+        defaults.set(enabled, forKey: Self.multiplierEnabledKey)
+        defaults.set(value, forKey: Self.multiplierKey)
+        applyOverridesToCachedRaw()
+        NotificationCenter.default.post(name: .ccmeterStatusBarShouldRefresh, object: nil)
+    }
+
     private func loadPricingOverrides() {
         let defaults = UserDefaults.standard
         let enabled = defaults.bool(forKey: Self.customPricingEnabledKey)
@@ -172,21 +185,36 @@ final class UsageStore {
 
     private func applyOverridesToCachedRaw() {
         guard let rawDaily, let rawSession, let rawBlocks else { return }
+        var newDaily: DailyReport
+        var newSession: SessionReport
+        var newBlocks: BlocksReport
         if let overrides = pricingOverrides {
-            let newDaily = CostRecalculator.apply(overrides, to: rawDaily)
-            self.daily = newDaily
-            self.session = CostRecalculator.apply(overrides, to: rawSession)
-            self.blocks = CostRecalculator.apply(
+            newDaily = CostRecalculator.apply(overrides, to: rawDaily)
+            newSession = CostRecalculator.apply(overrides, to: rawSession)
+            newBlocks = CostRecalculator.apply(
                 overrides,
                 to: rawBlocks,
                 newDaily: newDaily,
                 originalDaily: rawDaily
             )
         } else {
-            self.daily = rawDaily
-            self.session = rawSession
-            self.blocks = rawBlocks
+            newDaily = rawDaily
+            newSession = rawSession
+            newBlocks = rawBlocks
         }
+
+        let defaults = UserDefaults.standard
+        let mEnabled = defaults.bool(forKey: Self.multiplierEnabledKey)
+        let m = defaults.double(forKey: Self.multiplierKey)
+        if mEnabled, m > 0, m != 1.0 {
+            newDaily = CostRecalculator.applyMultiplier(m, to: newDaily)
+            newSession = CostRecalculator.applyMultiplier(m, to: newSession)
+            newBlocks = CostRecalculator.applyMultiplier(m, to: newBlocks)
+        }
+
+        self.daily = newDaily
+        self.session = newSession
+        self.blocks = newBlocks
     }
 }
 

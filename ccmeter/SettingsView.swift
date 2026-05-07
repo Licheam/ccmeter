@@ -7,6 +7,8 @@ struct SettingsView: View {
     @AppStorage(CCUsageRunner.userOverrideKey) private var ccusagePath: String = ""
     @AppStorage(UsageStore.customPricingEnabledKey) private var customPricingEnabled: Bool = false
     @AppStorage(UsageStore.customPricingPathKey) private var customPricingPath: String = ""
+    @AppStorage(UsageStore.multiplierEnabledKey) private var multiplierEnabled: Bool = false
+    @AppStorage(UsageStore.multiplierKey) private var multiplier: Double = 1.0
 
     var body: some View {
         Form {
@@ -75,6 +77,22 @@ struct SettingsView: View {
                 }
                 Button("Save example file…") { saveExampleFile() }
             }
+
+            Section("Global multiplier") {
+                Toggle("Apply multiplier to costs", isOn: $multiplierEnabled)
+                HStack {
+                    Slider(value: $multiplier, in: 0.1...5.0, step: 0.1)
+                        .disabled(!multiplierEnabled)
+                    TextField("", value: $multiplier, format: .number)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 70)
+                        .disabled(!multiplierEnabled)
+                }
+                Text("Final cost = (custom or ccusage) × multiplier.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
         .padding(20)
         .frame(width: 520)
@@ -86,6 +104,12 @@ struct SettingsView: View {
         }
         .onChange(of: customPricingPath) { _, _ in
             store.setCustomPricing(enabled: customPricingEnabled, path: customPricingPath)
+        }
+        .onChange(of: multiplierEnabled) { _, _ in
+            store.setMultiplier(enabled: multiplierEnabled, value: multiplier)
+        }
+        .onChange(of: multiplier) { _, _ in
+            store.setMultiplier(enabled: multiplierEnabled, value: multiplier)
         }
     }
 

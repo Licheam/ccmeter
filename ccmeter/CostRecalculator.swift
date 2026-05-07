@@ -76,6 +76,72 @@ enum CostRecalculator {
         return BlocksReport(blocks: newBlocks)
     }
 
+    // MARK: - Global multiplier
+
+    static func applyMultiplier(_ m: Double, to report: DailyReport) -> DailyReport {
+        let scaled = report.daily.map { scale(daily: $0, ratio: m) }
+        return DailyReport(daily: scaled, totals: aggregate(daily: scaled))
+    }
+
+    static func applyMultiplier(_ m: Double, to report: SessionReport) -> SessionReport {
+        let scaled = report.sessions.map { scale(session: $0, ratio: m) }
+        return SessionReport(sessions: scaled, totals: aggregate(sessions: scaled))
+    }
+
+    static func applyMultiplier(_ m: Double, to report: BlocksReport) -> BlocksReport {
+        BlocksReport(blocks: report.blocks.map { scale(block: $0, ratio: m) })
+    }
+
+    private static func scale(daily entry: DailyEntry, ratio: Double) -> DailyEntry {
+        let mbs = entry.modelBreakdowns?.map { mb in
+            ModelBreakdown(
+                modelName: mb.modelName,
+                inputTokens: mb.inputTokens,
+                outputTokens: mb.outputTokens,
+                cacheCreationTokens: mb.cacheCreationTokens,
+                cacheReadTokens: mb.cacheReadTokens,
+                cost: mb.cost.map { $0 * ratio }
+            )
+        }
+        return DailyEntry(
+            date: entry.date,
+            inputTokens: entry.inputTokens,
+            outputTokens: entry.outputTokens,
+            cacheCreationTokens: entry.cacheCreationTokens,
+            cacheReadTokens: entry.cacheReadTokens,
+            totalTokens: entry.totalTokens,
+            totalCost: entry.totalCost.map { $0 * ratio },
+            modelsUsed: entry.modelsUsed,
+            modelBreakdowns: mbs
+        )
+    }
+
+    private static func scale(session entry: SessionEntry, ratio: Double) -> SessionEntry {
+        let mbs = entry.modelBreakdowns?.map { mb in
+            ModelBreakdown(
+                modelName: mb.modelName,
+                inputTokens: mb.inputTokens,
+                outputTokens: mb.outputTokens,
+                cacheCreationTokens: mb.cacheCreationTokens,
+                cacheReadTokens: mb.cacheReadTokens,
+                cost: mb.cost.map { $0 * ratio }
+            )
+        }
+        return SessionEntry(
+            sessionId: entry.sessionId,
+            inputTokens: entry.inputTokens,
+            outputTokens: entry.outputTokens,
+            cacheCreationTokens: entry.cacheCreationTokens,
+            cacheReadTokens: entry.cacheReadTokens,
+            totalTokens: entry.totalTokens,
+            totalCost: entry.totalCost.map { $0 * ratio },
+            lastActivity: entry.lastActivity,
+            modelsUsed: entry.modelsUsed,
+            modelBreakdowns: mbs,
+            projectPath: entry.projectPath
+        )
+    }
+
     // MARK: - Per-entry recompute
 
     private static func recompute(entry: DailyEntry, overrides: PricingOverrides) -> DailyEntry {
