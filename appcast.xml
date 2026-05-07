@@ -5,5 +5,13 @@
     <link>https://raw.githubusercontent.com/Licheam/ccmeter/main/appcast.xml</link>
     <description>Latest ccmeter releases</description>
     <language>en</language>
+    <item>
+      <title>ccmeter 0.1.2</title>
+      <pubDate>Thu, 07 May 2026 08:14:48 +0000</pubDate>
+      <sparkle:version>5</sparkle:version>
+      <sparkle:shortVersionString>0.1.2</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure url="https://github.com/Licheam/ccmeter/releases/download/v0.1.2/ccmeter-0.1.2.dmg" type="application/octet-stream" sparkle:edSignature="FZmXXoa1/cj8GBPvG3BNelFI7HcBN/NBe5FJDtXqSFMSj2Dyd16GTqyrIjQd/HjED1+Co4gA2QVOXu1B0/qUCA==" length="1444688" />
+    </item>
   </channel>
 </rss>

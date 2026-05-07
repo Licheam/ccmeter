@@ -141,12 +141,13 @@ jobs:
           set -e
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
+          # Save the freshly-updated appcast (we're on a detached HEAD at the tag)
+          cp appcast.xml /tmp/appcast-new.xml
+          # Move to a fresh local main pointing at the latest origin/main
           git fetch origin main
-          git checkout main
-          git pull --rebase origin main
-          # Re-apply the appcast change against the freshly pulled main
-          # (in case main moved between checkout and now). The file we already
-          # updated is in the working tree, so just stage it.
+          git checkout -B main origin/main
+          # Re-apply our update on top of latest main
+          mv /tmp/appcast-new.xml appcast.xml
           git add appcast.xml
           if git diff --cached --quiet; then
             echo "No appcast.xml changes to commit"
