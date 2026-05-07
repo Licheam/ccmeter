@@ -6,7 +6,7 @@ struct ccmeterApp: App {
 
     var body: some Scene {
         Settings {
-            SettingsView(store: appDelegate.store)
+            SettingsView(store: appDelegate.store, updater: appDelegate.updater)
         }
     }
 }

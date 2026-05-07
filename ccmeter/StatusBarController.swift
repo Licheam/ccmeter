@@ -5,17 +5,19 @@ import SwiftUI
 final class StatusBarController: NSObject {
 
     private let store: UsageStore
+    private let updater: Updater
     private let statusItem: NSStatusItem
     private let popover: NSPopover
 
-    init(store: UsageStore) {
+    init(store: UsageStore, updater: Updater) {
         self.store = store
+        self.updater = updater
         self.statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
         let pop = NSPopover()
         pop.behavior = .transient
         pop.animates = true
-        let host = NSHostingController(rootView: PopoverContent(store: store))
+        let host = NSHostingController(rootView: PopoverContent(store: store, updater: updater))
         host.sizingOptions = [.preferredContentSize]
         pop.contentViewController = host
         self.popover = pop

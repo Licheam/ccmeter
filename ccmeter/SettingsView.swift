@@ -4,6 +4,7 @@ import UniformTypeIdentifiers
 struct SettingsView: View {
 
     @Bindable var store: UsageStore
+    @Bindable var updater: Updater
     @AppStorage(CCUsageRunner.userOverrideKey) private var ccusagePath: String = ""
     @AppStorage(UsageStore.customPricingEnabledKey) private var customPricingEnabled: Bool = false
     @AppStorage(UsageStore.customPricingPathKey) private var customPricingPath: String = ""
@@ -92,6 +93,16 @@ struct SettingsView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Section("Updates") {
+                HStack {
+                    Text("Current version")
+                    Spacer()
+                    Text(updater.currentVersion).foregroundStyle(.secondary)
+                }
+                Toggle("Automatically check for updates", isOn: $updater.automaticallyChecks)
+                Button("Check for updates…") { updater.checkForUpdates() }
             }
         }
         .padding(20)

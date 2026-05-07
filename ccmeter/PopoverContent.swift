@@ -4,6 +4,7 @@ import AppKit
 struct PopoverContent: View {
 
     @Bindable var store: UsageStore
+    @Bindable var updater: Updater
     @State private var showSettings = false
 
     var body: some View {
@@ -40,7 +41,7 @@ struct PopoverContent: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
-                SettingsView(store: store)
+                SettingsView(store: store, updater: updater)
             }
         }
     }

@@ -95,6 +95,32 @@ jobs:
           path: dist/*.dmg
           if-no-files-found: error
 
+      - name: Download Sparkle tools
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          curl -fsSL https://github.com/sparkle-project/Sparkle/releases/download/2.9.1/Sparkle-2.9.1.tar.xz \
+            | tar -xJ -C /tmp/
+
+      - name: Sign DMG and update appcast
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
+        run: |
+          set -e
+          VERSION="${{ steps.version.outputs.version }}"
+          DMG="dist/ccmeter-${VERSION}.dmg"
+          PRIV=/tmp/sparkle_priv.key
+          printf '%s' "$SPARKLE_ED_PRIVATE_KEY" > "$PRIV"
+          SIG_LINE=$(/tmp/bin/sign_update -f "$PRIV" "$DMG")
+          rm -f "$PRIV"
+          URL="https://github.com/${GITHUB_REPOSITORY}/releases/download/v${VERSION}/ccmeter-${VERSION}.dmg"
+          PUBDATE=$(LC_ALL=en_US.UTF-8 TZ=UTC date "+%a, %d %b %Y %H:%M:%S +0000")
+          ITEM=$'    <item>\n      <title>ccmeter '"${VERSION}"$'</title>\n      <pubDate>'"${PUBDATE}"$'</pubDate>\n      <sparkle:version>'"${{ github.run_number }}"$'</sparkle:version>\n      <sparkle:shortVersionString>'"${VERSION}"$'</sparkle:shortVersionString>\n      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>\n      <enclosure url="'"${URL}"$'" type="application/octet-stream" '"${SIG_LINE}"$' />\n    </item>'
+          export ITEM
+          python3 -c "import os; d = open('appcast.xml').read(); open('appcast.xml','w').write(d.replace('</channel>', os.environ['ITEM'] + '\n  </channel>'))"
+          echo "--- appcast.xml ---"
+          cat appcast.xml
+
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
@@ -108,3 +134,23 @@ jobs:
             (Or: System Settings → Privacy & Security → "Open Anyway" after the first blocked attempt.)
 
             Subsequent launches work normally.
+
+      - name: Commit updated appcast back to main
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          set -e
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git fetch origin main
+          git checkout main
+          git pull --rebase origin main
+          # Re-apply the appcast change against the freshly pulled main
+          # (in case main moved between checkout and now). The file we already
+          # updated is in the working tree, so just stage it.
+          git add appcast.xml
+          if git diff --cached --quiet; then
+            echo "No appcast.xml changes to commit"
+            exit 0
+          fi
+          git commit -m "Update appcast for v${{ steps.version.outputs.version }}"
+          git push origin main

@@ -1,0 +1,9 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+  <channel>
+    <title>ccmeter Updates</title>
+    <link>https://raw.githubusercontent.com/Licheam/ccmeter/main/appcast.xml</link>
+    <description>Latest ccmeter releases</description>
+    <language>en</language>
+  </channel>
+</rss>

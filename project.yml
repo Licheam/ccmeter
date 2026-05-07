@@ -6,6 +6,11 @@ options:
   developmentLanguage: en
   createIntermediateGroups: true
 
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: 2.9.1
+
 settings:
   base:
     SWIFT_VERSION: "5.10"
@@ -25,6 +30,8 @@ targets:
     platform: macOS
     sources:
       - path: ccmeter
+    dependencies:
+      - package: Sparkle
     info:
       path: ccmeter/Info.plist
       properties:
@@ -34,3 +41,6 @@ targets:
         CFBundleVersion: "1"
         CFBundleDisplayName: "ccmeter"
         NSHumanReadableCopyright: "Copyright © 2026 Leachim. All rights reserved."
+        SUFeedURL: "https://raw.githubusercontent.com/Licheam/ccmeter/main/appcast.xml"
+        SUPublicEDKey: "WC55d7tfAtb81zppZIF1uECUz+87IJ+7TAQdQ/9ls+w="
+        SUEnableInstallerLauncherService: false
