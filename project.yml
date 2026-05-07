@@ -20,7 +20,7 @@ settings:
     CODE_SIGN_IDENTITY: "-"
     DEVELOPMENT_TEAM: ""
     ENABLE_HARDENED_RUNTIME: NO
-    MARKETING_VERSION: "0.1.1"
+    MARKETING_VERSION: "0.1.2"
     CURRENT_PROJECT_VERSION: "1"
     ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
 
@@ -37,7 +37,7 @@ targets:
       properties:
         LSUIElement: true
         LSMinimumSystemVersion: "14.0"
-        CFBundleShortVersionString: "0.1.1"
+        CFBundleShortVersionString: "0.1.2"
         CFBundleVersion: "1"
         CFBundleDisplayName: "ccmeter"
         NSHumanReadableCopyright: "Copyright © 2026 Leachim. All rights reserved."
