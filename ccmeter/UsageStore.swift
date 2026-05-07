@@ -20,7 +20,17 @@ final class UsageStore {
     }
     var displayMetric: DisplayMetric
 
+    var pricingOverrides: PricingOverrides?
+    var pricingOverridesError: String?
+
+    private var rawDaily: DailyReport?
+    private var rawSession: SessionReport?
+    private var rawBlocks: BlocksReport?
+
     private var timer: Timer?
+
+    static let customPricingEnabledKey = "customPricingEnabled"
+    static let customPricingPathKey = "customPricingPath"
 
     init() {
         let defaults = UserDefaults.standard
@@ -32,6 +42,8 @@ final class UsageStore {
         }
         self.refreshIntervalSec = max(5, defaults.integer(forKey: "refreshIntervalSec"))
         self.displayMetric = DisplayMetric(rawValue: defaults.string(forKey: "displayMetric") ?? "cost") ?? .cost
+
+        loadPricingOverrides()
 
         observeWorkspace()
         restartTimer()
@@ -79,9 +91,13 @@ final class UsageStore {
             async let blocksData  = CCUsageRunner.run("blocks")
 
             let (d, s, b) = try await (dailyData, sessionData, blocksData)
-            self.daily   = try CCUsageRunner.decode(d, as: DailyReport.self)
-            self.session = try CCUsageRunner.decode(s, as: SessionReport.self)
-            self.blocks  = try CCUsageRunner.decode(b, as: BlocksReport.self)
+            let decodedDaily   = try CCUsageRunner.decode(d, as: DailyReport.self)
+            let decodedSession = try CCUsageRunner.decode(s, as: SessionReport.self)
+            let decodedBlocks  = try CCUsageRunner.decode(b, as: BlocksReport.self)
+            self.rawDaily   = decodedDaily
+            self.rawSession = decodedSession
+            self.rawBlocks  = decodedBlocks
+            applyOverridesToCachedRaw()
             self.lastError = nil
             self.lastRefreshAt = Date()
             NotificationCenter.default.post(name: .ccmeterStatusBarShouldRefresh, object: nil)
@@ -124,6 +140,52 @@ final class UsageStore {
         case .cost:   return Formatting.compactCost(cost)
         case .tokens: return Formatting.compactTokens(tokens)
         case .both:   return "\(Formatting.compactCost(cost)) · \(Formatting.compactTokens(tokens))"
+        }
+    }
+
+    func setCustomPricing(enabled: Bool, path: String?) {
+        let defaults = UserDefaults.standard
+        defaults.set(enabled, forKey: Self.customPricingEnabledKey)
+        if let path { defaults.set(path, forKey: Self.customPricingPathKey) }
+        loadPricingOverrides()
+        applyOverridesToCachedRaw()
+        NotificationCenter.default.post(name: .ccmeterStatusBarShouldRefresh, object: nil)
+    }
+
+    private func loadPricingOverrides() {
+        let defaults = UserDefaults.standard
+        let enabled = defaults.bool(forKey: Self.customPricingEnabledKey)
+        let path = defaults.string(forKey: Self.customPricingPathKey) ?? ""
+        guard enabled, !path.isEmpty else {
+            pricingOverrides = nil
+            pricingOverridesError = nil
+            return
+        }
+        do {
+            pricingOverrides = try PricingOverridesLoader.load(fromPath: path)
+            pricingOverridesError = nil
+        } catch {
+            pricingOverrides = nil
+            pricingOverridesError = error.localizedDescription
+        }
+    }
+
+    private func applyOverridesToCachedRaw() {
+        guard let rawDaily, let rawSession, let rawBlocks else { return }
+        if let overrides = pricingOverrides {
+            let newDaily = CostRecalculator.apply(overrides, to: rawDaily)
+            self.daily = newDaily
+            self.session = CostRecalculator.apply(overrides, to: rawSession)
+            self.blocks = CostRecalculator.apply(
+                overrides,
+                to: rawBlocks,
+                newDaily: newDaily,
+                originalDaily: rawDaily
+            )
+        } else {
+            self.daily = rawDaily
+            self.session = rawSession
+            self.blocks = rawBlocks
         }
     }
 }

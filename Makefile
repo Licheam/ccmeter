@@ -1,7 +1,7 @@
 # ccmeter — local dev helpers.
 # All targets run from the repo root.
 
-XCODEBUILD := /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild
+XCODEBUILD := xcrun xcodebuild
 PROJECT    := ccmeter.xcodeproj
 SCHEME     := ccmeter
 CONFIG     := Release
